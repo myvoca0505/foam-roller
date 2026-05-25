@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>폼롤러 운동 타이머</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #111318;
+      --surf:   #1a1d24;
+      --surf2:  #22262f;
+      --border: #2d3139;
+      --text:   #e8eaf0;
+      --muted:  #7c8190;
+      --blue:   #4f8ef7;
+      --green:  #3ecc71;
+      --orange: #f09542;
+      --red:    #e05252;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--surf);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .s-head {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .s-head h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      line-height: 1.3;
+    }
+
+    .s-sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .all-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .all-ctrl label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .all-sel {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .all-btn {
+      background: var(--blue);
+      border: none;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .all-btn:hover { background: #6ba0f9; }
+
+    .ex-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      list-style: none;
+    }
+
+    .ex-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.12s;
+      margin-bottom: 2px;
+    }
+
+    .ex-item:hover { background: var(--surf2); }
+
+    .ex-item.active {
+      background: rgba(79,142,247,0.1);
+      border-color: rgba(79,142,247,0.35);
+    }
+
+    .ex-item.done .ex-badge {
+      background: var(--green);
+      color: #000;
+    }
+
+    .ex-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--surf2);
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ex-name {
+      flex: 1;
+      font-size: 0.83rem;
+      line-height: 1.35;
+    }
+
+    .dur-sel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.75rem;
+      padding: 3px 4px;
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ── Main ── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 40px;
+      position: relative;
+    }
+
+    .prog-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--border);
+    }
+
+    #progFill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .phase-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 13px;
+      border-radius: 20px;
+      background: var(--surf2);
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .phase-tag.prep     { background: rgba(240,149,66,0.15); color: var(--orange); }
+    .phase-tag.exercise { background: rgba(62,204,113,0.15); color: var(--green); }
+    .phase-tag.done     { background: rgba(79,142,247,0.15); color: var(--blue); }
+
+    .counter {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .ex-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      text-align: center;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 28px;
+      line-height: 1.2;
+    }
+
+    /* Ring */
+    .ring-wrap {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      margin-bottom: 32px;
+    }
+
+    .ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .r-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+
+    .r-fg {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.9s linear, stroke 0.3s;
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .r-num {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .r-unit {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .ex-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+      min-height: 40px;
+      margin-top: -18px;
+      margin-bottom: 18px;
+      padding: 0 8px;
+    }
+
+    /* Controls */
+    .ctrls {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, background 0.15s;
+    }
+
+    .btn:hover  { transform: scale(1.07); }
+    .btn:active { transform: scale(0.94); }
+
+    .btn-sm {
+      width: 50px; height: 50px;
+      background: var(--surf2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-size: 1.25rem;
+    }
+
+    .btn-sm:hover { background: var(--border); }
+
+    .btn-lg {
+      width: 72px; height: 72px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 2rem;
+    }
+
+    .btn-lg:hover { background: #6ba0f9; }
+
+    .btn-reset:hover {
+      background: rgba(224,82,82,0.12);
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 680px) {
+      body {
+        grid-template-columns: 1fr;
+        grid-template-rows: 330px 1fr;
+        height: auto;
+        overflow: auto;
+      }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+      .main { padding: 20px 16px; }
+      .ex-title { font-size: 1.4rem; min-height: 54px; margin-bottom: 20px; }
+      .ring-wrap { width: 190px; height: 190px; margin-bottom: 22px; }
+      .r-num { font-size: 3.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="s-head">
+    <h1>🧘 폼롤러 운동 프로그램</h1>
+    <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
+    <div class="all-ctrl">
+      <label>전체 시간</label>
+      <select class="all-sel" id="allSel">
+      </select>
+      <button class="all-btn" onclick="applyAll()">전체 적용</button>
+    </div>
+  </div>
+  <ul class="ex-list" id="exList"></ul>
+</aside>
+
+<main class="main">
+  <div class="prog-bar"><div id="progFill"></div></div>
+
+  <div class="phase-tag" id="phaseTag">대기</div>
+  <div class="counter" id="counter">— / 25</div>
+  <div class="ex-title" id="exTitle">시작을 눌러주세요</div>
+  <div class="ex-desc" id="exDesc"></div>
+
+  <div class="ring-wrap">
+    <svg viewBox="0 0 240 240" class="ring-svg">
+      <circle class="r-bg" cx="120" cy="120" r="108"/>
+      <circle class="r-fg" id="ringFg" cx="120" cy="120" r="108"
+        stroke-dasharray="678.58" stroke-dashoffset="0"/>
+    </svg>
+    <div class="ring-center">
+      <div class="r-num" id="rNum">--</div>
+      <div class="r-unit" id="rUnit">초</div>
+    </div>
+  </div>
+
+  <div class="ctrls">
+    <button class="btn btn-sm" onclick="prevEx()" title="이전 동작">⏮</button>
+    <button class="btn btn-lg" id="playBtn" onclick="togglePlay()" title="시작/일시정지">▶</button>
+    <button class="btn btn-sm" onclick="nextEx()" title="다음 동작">⏭</button>
+    <button class="btn btn-sm btn-reset" onclick="resetAll()" title="처음부터">↺</button>
+  </div>
+</main>
+
+<script>
+const EXERCISE_DATA = [
+  {
+    name: '후두하근 마사지',
+    desc: '폼롤러를 목 뒤 두개골 아랫부분에 댑니다. 턱을 살짝 당기고 천천히 좌우로 고개를 돌리며 뒷목 근육을 이완해 주세요.',
+  },
+  {
+    name: '말린어깨 스트레칭(왼쪽)',
+    desc: '왼쪽 어깨 앞쪽 가슴과 어깨 사이에 폼롤러를 댑니다. 팔을 뒤로 당기면서 말린 어깨 앞쪽 근육을 늘려주세요.',
+  },
+  {
+    name: '말린어깨 스트레칭(오른쪽)',
+    desc: '오른쪽 어깨 앞쪽 가슴과 어깨 사이에 폼롤러를 댑니다. 팔을 뒤로 당기면서 말린 어깨 앞쪽 근육을 늘려주세요.',
+  },
+  {
+    name: '굽은등 스트레칭',
+    desc: '폼롤러를 등 흉추 부위에 가로로 놓고 양손을 머리 뒤에 받칩니다. 천천히 뒤로 젖혀 굽은 등을 구간별로 펴주세요.',
+  },
+  {
+    name: '날개뼈, 등 스트레칭',
+    desc: '폼롤러를 등 중앙에 세로로 놓고 눕습니다. 양팔을 앞으로 뻗거나 좌우로 벌려 날개뼈 주변과 등 근육을 이완해 주세요.',
+  },
+  {
+    name: '소흉근 스트레칭',
+    desc: '폼롤러를 쇄골 아래 가슴 안쪽(소흉근 위치)에 댑니다. 팔을 바깥쪽으로 벌리면서 소흉근을 충분히 늘려주세요.',
+  },
+  {
+    name: '대흉근 스트레칭',
+    desc: '폼롤러를 등 중앙에 세로로 놓고 누워 양팔을 옆으로 T자로 벌립니다. 중력에 맡기듯 이완하며 가슴 근육을 펴주세요.',
+  },
+  {
+    name: '굽은등 교정 스트레칭(왼쪽)',
+    desc: '폼롤러를 왼쪽 흉추 옆에 세로로 댑니다. 몸통을 왼쪽으로 회전하며 굽은 등 왼쪽 부위를 교정하듯 스트레칭해 주세요.',
+  },
+  {
+    name: '굽은등 교정 스트레칭(오른쪽)',
+    desc: '폼롤러를 오른쪽 흉추 옆에 세로로 댑니다. 몸통을 오른쪽으로 회전하며 굽은 등 오른쪽 부위를 교정하듯 스트레칭해 주세요.',
+  },
+  {
+    name: '허리 골반 근육 마사지',
+    desc: '폼롤러를 허리와 골반 사이(요방형근 부위)에 댑니다. 체중을 실어 천천히 앞뒤·좌우로 움직이며 허리 심부 근육을 풀어주세요.',
+  },
+  {
+    name: '허벅지 뒷 근육 스트레칭',
+    desc: '폼롤러를 허벅지 뒤쪽(햄스트링)에 놓고 양손으로 체중을 지지합니다. 무릎 아래에서 엉덩이 아래까지 앞뒤로 굴려주세요.',
+  },
+  {
+    name: '허벅지 안쪽 근육 스트레칭',
+    desc: '엎드린 자세에서 한쪽 다리를 옆으로 벌리고 폼롤러를 허벅지 안쪽(내전근)에 댑니다. 사타구니에서 무릎 방향으로 굴려주세요.',
+  },
+  {
+    name: '장요근 스트레칭(왼쪽)',
+    desc: '엎드려 왼쪽 골반 앞쪽 깊숙한 곳에 폼롤러를 댑니다. 체중을 서서히 실어 장요근을 이완하고, 통증 지점에서 잠시 멈춰주세요.',
+  },
+  {
+    name: '장요근 스트레칭(오른쪽)',
+    desc: '엎드려 오른쪽 골반 앞쪽 깊숙한 곳에 폼롤러를 댑니다. 체중을 서서히 실어 장요근을 이완하고, 통증 지점에서 잠시 멈춰주세요.',
+  },
+  {
+    name: '허벅지 앞쪽 스트레칭',
+    desc: '엎드린 자세에서 폼롤러를 허벅지 앞(대퇴사두근)에 놓습니다. 골반을 내리며 체중을 실어 무릎에서 골반까지 앞뒤로 굴려주세요.',
+  },
+  {
+    name: '엉덩이 근육 마사지(왼쪽)',
+    desc: '왼쪽 엉덩이를 폼롤러 위에 얹고, 왼발 발목을 오른 무릎 위에 올립니다. 체중을 실어 둔근 전체를 굴려 마사지해 주세요.',
+  },
+  {
+    name: '엉덩이 근육 마사지(오른쪽)',
+    desc: '오른쪽 엉덩이를 폼롤러 위에 얹고, 오른발 발목을 왼 무릎 위에 올립니다. 체중을 실어 둔근 전체를 굴려 마사지해 주세요.',
+  },
+  {
+    name: '허벅지 바깥쪽 스트레칭(왼쪽)',
+    desc: '왼쪽으로 누워 폼롤러를 왼쪽 허벅지 바깥(IT밴드)에 댑니다. 오른손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
+  },
+  {
+    name: '허벅지 바깥쪽 스트레칭(오른쪽)',
+    desc: '오른쪽으로 누워 폼롤러를 오른쪽 허벅지 바깥(IT밴드)에 댑니다. 왼손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
+  },
+  {
+    name: '허벅지 안쪽 마사지(왼쪽)',
+    desc: '엎드려 왼쪽 허벅지 안쪽을 폼롤러에 댑니다. 사타구니에서 무릎 방향으로 천천히 굴리고, 뭉친 곳에서는 10초간 지긋이 눌러주세요.',
+  },
+  {
+    name: '허벅지 안쪽 마사지(오른쪽)',
+    desc: '엎드려 오른쪽 허벅지 안쪽을 폼롤러에 댑니다. 사타구니에서 무릎 방향으로 천천히 굴리고, 뭉친 곳에서는 10초간 지긋이 눌러주세요.',
+  },
+  {
+    name: '정강이 근육 마사지',
+    desc: '무릎을 꿇고 정강이 앞쪽(전경골근)에 폼롤러를 댑니다. 체중을 앞으로 실어 발목에서 무릎 아래까지 앞뒤로 굴려주세요.',
+  },
+  {
+    name: '종아리 근육 마사지(왼쪽)',
+    desc: '왼쪽 종아리를 폼롤러 위에 올리고 엉덩이를 들어 체중을 실습니다. 발목에서 무릎 바로 아래까지 천천히 굴려 종아리를 풀어주세요.',
+  },
+  {
+    name: '종아리 근육 마사지(오른쪽)',
+    desc: '오른쪽 종아리를 폼롤러 위에 올리고 엉덩이를 들어 체중을 실습니다. 발목에서 무릎 바로 아래까지 천천히 굴려 종아리를 풀어주세요.',
+  },
+  {
+    name: '정강이 종아리 근육 이완',
+    desc: '폼롤러를 발목 위쪽에 두고 양다리를 올립니다. 발목을 상하좌우로 천천히 움직이며 정강이와 종아리 근육을 동시에 이완해 주세요.',
+  },
+];
+
+const exercises = EXERCISE_DATA.map(e => ({ name: e.name, desc: e.desc, dur: 90 }));
+const PREP = 5;
+const C = 2 * Math.PI * 108; // 678.58
+
+// State
+let phase = 'idle'; // idle | prep | exercise | done
+let cur = 0;
+let tLeft = 0;
+let paused = false;
+let rafId = null;
+let lastTs = null;
+let lastAnnounced = -1;
+const doneSet = new Set();
+
+// DOM
+const $ = id => document.getElementById(id);
+const exListEl  = $('exList');
+const phaseTag  = $('phaseTag');
+const counterEl = $('counter');
+const exTitleEl = $('exTitle');
+const exDescEl  = $('exDesc');
+const rNumEl    = $('rNum');
+const rUnitEl   = $('rUnit');
+const ringFg    = $('ringFg');
+const progFill  = $('progFill');
+const playBtn   = $('playBtn');
+const totalTime = $('totalTime');
+
+
+function buildAllSel() {
+  const sel = $('allSel');
+  sel.innerHTML = Array.from({ length: 30 }, (_, k) => {
+    const s = (k + 1) * 10;
+    return `<option value="${s}"${s === 90 ? ' selected' : ''}>${s}초</option>`;
+  }).join('');
+}
+
+function applyAll() {
+  const v = +$('allSel').value;
+  exercises.forEach((ex, i) => {
+    ex.dur = v;
+    const sel = document.querySelector(`#ei${i} .dur-sel`);
+    if (sel) sel.value = v;
+  });
+  calcTotal();
+}
+
+function buildList() {
+  exListEl.innerHTML = '';
+  exercises.forEach((ex, i) => {
+    const li = document.createElement('li');
+    li.className = 'ex-item';
+    li.id = `ei${i}`;
+    li.onclick = () => jumpTo(i);
+
+    const opts = Array.from({ length: 30 }, (_, k) => {
+      const s = (k + 1) * 10;
+      return `<option value="${s}"${s === ex.dur ? ' selected' : ''}>${s}초</option>`;
+    }).join('');
+
+    li.innerHTML = `
+      <span class="ex-badge" id="eb${i}">${i + 1}</span>
+      <span class="ex-name">${ex.name}</span>
+      <select class="dur-sel" onchange="setDur(${i},+this.value)" onclick="event.stopPropagation()">${opts}</select>
+    `;
+    exListEl.appendChild(li);
+  });
+  calcTotal();
+}
+
+function setDur(i, v) {
+  exercises[i].dur = v;
+  calcTotal();
+}
+
+function calcTotal() {
+  const s = exercises.reduce((a, e) => a + e.dur + PREP, 0);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  totalTime.textContent = `총 예상 시간: ${m}분${sec ? ' ' + sec + '초' : ''}`;
+}
+
+// TTS
+function speak(text, cancelPrev = true) {
+  if (!window.speechSynthesis) return;
+  if (cancelPrev) speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ko-KR';
+  u.rate = 1.05;
+  speechSynthesis.speak(u);
+}
+
+function ttsName(name) {
+  return name.replace(/\(([^)]+)\)/, ', $1');
+}
+
+// Timer
+function startEx(i, intro = false) {
+  stopAnim();
+  cur = i;
+  phase = 'prep';
+  tLeft = PREP;
+  paused = false;
+  lastAnnounced = -1;
+  if (intro) {
+    speak('폼롤러 운동 프로그램을 시작합니다.');
+    speak(`${ttsName(exercises[i].name)}. 준비하세요.`, false);
+  } else {
+    speak(`다음은 ${ttsName(exercises[i].name)}. 준비하세요.`);
+  }
+  render();
+  rafId = requestAnimationFrame(tick);
+}
+
+function tick(ts) {
+  if (paused) { lastTs = null; return; }
+
+  if (lastTs !== null) {
+    const dt = (ts - lastTs) / 1000;
+    tLeft -= dt;
+
+    if (phase === 'prep' && tLeft <= 0) {
+      phase = 'exercise';
+      tLeft = exercises[cur].dur;
+      lastAnnounced = -1;
+      speak('시작');
+      speak(exercises[cur].desc, false);
+    } else if (phase === 'exercise') {
+      if (tLeft <= 0) {
+        tLeft = 0;
+        doneSet.add(cur);
+        speak('완료');
+        render();
+        stopAnim();
+        if (cur < exercises.length - 1) {
+          setTimeout(() => startEx(cur + 1), 1200);
+        } else {
+          phase = 'done';
+          render();
+          setTimeout(() => speak('모든 프로그램이 끝났습니다. 수고하셨습니다.'), 800);
+        }
+        return;
+      }
+      // 10초 단위 음성 안내
+      const s = Math.floor(tLeft);
+      if (s > 0 && s % 10 === 0 && s !== lastAnnounced && s < exercises[cur].dur) {
+        lastAnnounced = s;
+        speak(`${s}초 남았습니다`, false);
+      }
+    }
+  }
+
+  lastTs = ts;
+  render();
+  rafId = requestAnimationFrame(tick);
+}
+
+function stopAnim() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  lastTs = null;
+}
+
+// Render
+function render() {
+  const ex = exercises[cur];
+
+  phaseTag.className = 'phase-tag ' + phase;
+  phaseTag.textContent = { idle: '대기', prep: '준비', exercise: '운동중', done: '완료!' }[phase];
+
+  if (phase === 'idle') {
+    counterEl.textContent = '— / 25';
+    exTitleEl.textContent = '시작을 눌러주세요';
+    exDescEl.textContent = '';
+    rNumEl.textContent = '--';
+    rUnitEl.textContent = '초';
+    ringFg.style.strokeDashoffset = 0;
+    playBtn.textContent = '▶';
+    progFill.style.width = '0%';
+  } else if (phase === 'done') {
+    counterEl.textContent = `${exercises.length} / ${exercises.length}`;
+    exTitleEl.textContent = '모든 운동 완료! 🎉';
+    exDescEl.textContent = '수고하셨습니다!';
+    rNumEl.textContent = '✓';
+    rUnitEl.textContent = '';
+    ringFg.style.stroke = 'var(--green)';
+    ringFg.style.strokeDashoffset = 0;
+    playBtn.textContent = '▶';
+    progFill.style.width = '100%';
+  } else {
+    counterEl.textContent = `${cur + 1} / ${exercises.length}`;
+    exTitleEl.textContent = ex.name;
+    exDescEl.textContent = ex.desc;
+
+    const total = phase === 'prep' ? PREP : ex.dur;
+    const pct = Math.max(0, tLeft / total);
+    rNumEl.textContent = Math.max(0, Math.ceil(tLeft));
+    rUnitEl.textContent = phase === 'prep' ? '초 후 시작' : '초 남음';
+    ringFg.style.stroke = phase === 'prep' ? 'var(--orange)' : 'var(--green)';
+    ringFg.style.strokeDashoffset = C * (1 - pct);
+    playBtn.textContent = paused ? '▶' : '⏸';
+
+    // 전체 진행률
+    let p = doneSet.size / exercises.length;
+    if (phase === 'exercise') p += (1 - pct) / exercises.length;
+    progFill.style.width = (Math.min(1, p) * 100) + '%';
+  }
+
+  // 목록 상태 업데이트
+  exercises.forEach((_, i) => {
+    const li = $(`ei${i}`);
+    const badge = $(`eb${i}`);
+    if (!li) return;
+    li.className = 'ex-item'
+      + (i === cur && phase !== 'idle' ? ' active' : '')
+      + (doneSet.has(i) ? ' done' : '');
+    badge.textContent = doneSet.has(i) ? '✓' : i + 1;
+  });
+
+  if (phase !== 'idle') {
+    $(`ei${cur}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+// Controls
+function togglePlay() {
+  if (phase === 'idle' || phase === 'done') {
+    doneSet.clear();
+    startEx(0, true);
+  } else if (paused) {
+    paused = false;
+    rafId = requestAnimationFrame(tick);
+    render();
+  } else {
+    paused = true;
+    speechSynthesis.cancel();
+    render();
+  }
+}
+
+function prevEx() {
+  if (phase === 'idle') return;
+  speechSynthesis.cancel();
+  const target = Math.max(0, cur - 1);
+  doneSet.delete(target);
+  doneSet.delete(cur);
+  startEx(target);
+}
+
+function nextEx() {
+  if (phase === 'idle' || cur >= exercises.length - 1) return;
+  speechSynthesis.cancel();
+  doneSet.add(cur);
+  startEx(cur + 1);
+}
+
+function jumpTo(i) {
+  speechSynthesis.cancel();
+  if (phase === 'idle') {
+    for (let j = 0; j < i; j++) doneSet.add(j);
+  }
+  startEx(i);
+}
+
+function resetAll() {
+  stopAnim();
+  speechSynthesis.cancel();
+  phase = 'idle';
+  cur = 0;
+  tLeft = 0;
+  paused = false;
+  doneSet.clear();
+  render();
+}
+
+// Init
+buildAllSel();
+buildList();
+render();
+</script>
+</body>
+</html>
