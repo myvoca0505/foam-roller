@@ -1,0 +1,15 @@
+{
+  "name": "폼롤러 운동 프로그램",
+  "short_name": "폼롤러",
+  "description": "폼롤러 운동 타이머 - 25개 동작",
+  "start_url": "/foam-roller/",
+  "scope": "/foam-roller/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111318",
+  "theme_color": "#4f8ef7",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

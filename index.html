@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>폼롤러 운동 타이머</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f8ef7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -102,6 +107,25 @@
     }
 
     .all-btn:hover { background: #6ba0f9; }
+
+    .install-btn {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      background: rgba(62,204,113,0.12);
+      border: 1px solid rgba(62,204,113,0.4);
+      color: var(--green);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s;
+      width: fit-content;
+    }
+
+    .install-btn:hover { background: rgba(62,204,113,0.22); }
 
     .ex-list {
       flex: 1;
@@ -351,6 +375,7 @@
   <div class="s-head">
     <h1>🧘 폼롤러 운동 프로그램</h1>
     <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
+    <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
     <div class="all-ctrl">
       <label>전체 시간</label>
       <select class="all-sel" id="allSel">
@@ -771,6 +796,31 @@ function resetAll() {
 buildAllSel();
 buildList();
 render();
+
+// PWA 설치
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBtn').style.display = 'none';
+  deferredPrompt = null;
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('installBtn').style.display = 'none';
+  });
+}
+
+// 서비스워커 등록
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
 </script>
 </body>
 </html>
