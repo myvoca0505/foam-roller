@@ -877,7 +877,7 @@ if ('serviceWorker' in navigator) {
 // 브라우저 감지
 (function() {
   const ua = navigator.userAgent;
-  const isChrome = /Chrome/.test(ua) && !/Naver|SamsungBrowser|OPR|Opera/.test(ua);
+  const isChrome = /Chrome/.test(ua) && !/Naver|SamsungBrowser|OPR|Opera|KAKAO|kakaotalk/i.test(ua);
   const isEdge   = /Edg\//.test(ua);
   if (isChrome || isEdge) return;
 
