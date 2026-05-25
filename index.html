@@ -420,8 +420,8 @@
       .ring-wrap { width: 155px; height: 155px; margin-bottom: 10px; }
       .r-num { font-size: 3.2rem; }
       .ctrls { gap: 10px; }
-      .btn-lg { width: 62px; height: 62px; font-size: 1.7rem; }
-      .btn-sm { width: 44px; height: 44px; font-size: 1.1rem; }
+      .btn-lg { width: 54px; height: 54px; }
+      .btn-sm { width: 42px; height: 42px; font-size: 1.05rem; }
     }
   </style>
 </head>
@@ -583,6 +583,9 @@ const EXERCISE_DATA = [
 const exercises = EXERCISE_DATA.map(e => ({ name: e.name, desc: e.desc, dur: 90 }));
 const PREP = 5;
 const C = 2 * Math.PI * 108; // 678.58
+
+const ICON_PLAY  = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M9 6v12l10-6z"/></svg>';
+const ICON_PAUSE = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>';
 
 // State
 let phase = 'idle'; // idle | prep | exercise | done
@@ -756,7 +759,7 @@ function render() {
     rNumEl.textContent = '--';
     rUnitEl.textContent = '초';
     ringFg.style.strokeDashoffset = 0;
-    playBtn.textContent = '▶';
+    playBtn.innerHTML = ICON_PLAY;
     progFill.style.width = '0%';
   } else if (phase === 'done') {
     counterEl.textContent = `${exercises.length} / ${exercises.length}`;
@@ -766,7 +769,7 @@ function render() {
     rUnitEl.textContent = '';
     ringFg.style.stroke = 'var(--green)';
     ringFg.style.strokeDashoffset = 0;
-    playBtn.textContent = '▶';
+    playBtn.innerHTML = ICON_PLAY;
     progFill.style.width = '100%';
   } else {
     counterEl.textContent = `${cur + 1} / ${exercises.length}`;
@@ -779,7 +782,7 @@ function render() {
     rUnitEl.textContent = phase === 'prep' ? '초 후 시작' : '초 남음';
     ringFg.style.stroke = phase === 'prep' ? 'var(--orange)' : 'var(--green)';
     ringFg.style.strokeDashoffset = C * (1 - pct);
-    playBtn.textContent = paused ? '▶' : '⏸';
+    playBtn.innerHTML = paused ? ICON_PLAY : ICON_PAUSE;
 
     // 전체 진행률
     let p = doneSet.size / exercises.length;
