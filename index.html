@@ -127,6 +127,26 @@
 
     .install-btn:hover { background: rgba(62,204,113,0.22); }
 
+    .yt-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,0,0,0.1);
+      border: 1px solid rgba(255,0,0,0.35);
+      color: #ff4444;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 8px;
+      text-decoration: none;
+      transition: background 0.15s;
+      width: fit-content;
+    }
+
+    .yt-btn:hover { background: rgba(255,0,0,0.2); }
+
     .browser-banner {
       display: none;
       position: fixed;
@@ -400,6 +420,50 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+    @media (orientation: landscape) and (max-height: 500px) {
+      .rotate-msg {
+        display: flex !important;
+      }
+      body > :not(.rotate-msg) {
+        display: none !important;
+      }
+    }
+
+    @media (orientation: landscape) and (min-height: 501px) {
+      body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100dvh;
+      }
+      .main {
+        padding: 20px 40px;
+      }
+    }
+
+    .rotate-msg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .rotate-msg svg {
+      animation: spin90 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes spin90 {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(-90deg); }
+    }
+
     @media (max-width: 680px) {
       body {
         grid-template-columns: 1fr;
@@ -427,6 +491,14 @@
 </head>
 <body>
 
+<div class="rotate-msg">
+  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2"/>
+    <line x1="12" y1="18" x2="12" y2="18.01"/>
+  </svg>
+  <span>화면을 세로로 돌려주세요</span>
+</div>
+
 <div class="browser-banner" id="browserBanner">
   <span>⚠️ 현재 브라우저에서는 소리가 지원되지 않을 수 있습니다. <strong>Chrome</strong>에서 이용해 주세요.</span>
   <a class="chrome-btn" id="chromeLink" href="#">Chrome으로 열기</a>
@@ -436,6 +508,10 @@
 <aside class="sidebar">
   <div class="s-head">
     <h1><svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;flex-shrink:0"><circle cx="50" cy="50" r="48" fill="#4f8ef7"/><rect x="24" y="38" width="52" height="24" fill="white" transform="rotate(-45 50 50)"/></svg> 폼롤러 운동 프로그램</h1>
+    <a class="yt-btn" href="https://www.youtube.com/watch?v=soRBhLxFHiw&list=WL&index=1&t=1091s" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21.8 8s-.2-1.4-.8-2c-.8-.8-1.6-.8-2-.9C16.2 5 12 5 12 5s-4.2 0-7 .1c-.4.1-1.2.1-2 .9-.6.6-.8 2-.8 2S2 9.6 2 11.2v1.5c0 1.6.2 3.2.2 3.2s.2 1.4.8 2c.8.8 1.8.8 2.3.9C6.8 19 12 19 12 19s4.2 0 7-.2c.4-.1 1.2-.1 2-.9.6-.6.8-2 .8-2s.2-1.6.2-3.2v-1.5C22 9.6 21.8 8 21.8 8zM10 15V9l5.5 3-5.5 3z"/></svg>
+      폼롤러 영상보기
+    </a>
     <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
     <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
     <div class="all-ctrl">
@@ -496,11 +572,11 @@ const EXERCISE_DATA = [
   },
   {
     name: '날개뼈, 등 스트레칭',
-    desc: '폼롤러를 등 중앙에 세로로 놓고 눕습니다. 양팔을 앞으로 뻗거나 좌우로 벌려 날개뼈 주변과 등 근육을 이완해 주세요.',
+    desc: '폼롤러를 등 부위에 가로로 놓고 눕습니다. 양팔을 기억자로 벌리고 위아래로 움직여 날개뼈 주변과 등 근육을 이완해 주세요.',
   },
   {
     name: '소흉근 스트레칭',
-    desc: '폼롤러를 쇄골 아래 가슴 안쪽(소흉근 위치)에 댑니다. 팔을 바깥쪽으로 벌리면서 소흉근을 충분히 늘려주세요.',
+    desc: '폼롤러를 등 중앙에 세로로 놓고 누워 팔꿈치를 니은자로 벌리고 위아래로 움직여 소흉근을 늘려주세요.',
   },
   {
     name: '대흉근 스트레칭',
@@ -520,23 +596,19 @@ const EXERCISE_DATA = [
   },
   {
     name: '허벅지 뒷 근육 스트레칭',
-    desc: '폼롤러를 허벅지 뒤쪽(햄스트링)에 놓고 양손으로 체중을 지지합니다. 무릎 아래에서 엉덩이 아래까지 앞뒤로 굴려주세요.',
+    desc: '방금 자세에서 다리를 위로 쭉 펴고 발목을 당겨서 허벅지 뒤쪽부터 종아리까지 스트레칭 하세요.',
   },
   {
     name: '허벅지 안쪽 근육 스트레칭',
-    desc: '엎드린 자세에서 한쪽 다리를 옆으로 벌리고 폼롤러를 허벅지 안쪽(내전근)에 댑니다. 사타구니에서 무릎 방향으로 굴려주세요.',
+    desc: '방금 자세에서 양다리를 좌우로 벌려 허벅지 안쪽을 스트레칭 하세요.',
   },
   {
     name: '장요근 스트레칭(왼쪽)',
-    desc: '엎드려 왼쪽 골반 앞쪽 깊숙한 곳에 폼롤러를 댑니다. 체중을 서서히 실어 장요근을 이완하고, 통증 지점에서 잠시 멈춰주세요.',
+    desc: '방금 자세에서 왼쪽 다리를 내리고 오른쪽 무릎을 두 손으로 잡고 가슴쪽으로 당기면서 스트레칭 하세요.',
   },
   {
     name: '장요근 스트레칭(오른쪽)',
-    desc: '엎드려 오른쪽 골반 앞쪽 깊숙한 곳에 폼롤러를 댑니다. 체중을 서서히 실어 장요근을 이완하고, 통증 지점에서 잠시 멈춰주세요.',
-  },
-  {
-    name: '허벅지 앞쪽 스트레칭',
-    desc: '엎드린 자세에서 폼롤러를 허벅지 앞(대퇴사두근)에 놓습니다. 골반을 내리며 체중을 실어 무릎에서 골반까지 앞뒤로 굴려주세요.',
+    desc: '이번엔 오른쪽 다리를 내리고 왼쪽 무릎을 두 손으로 잡고 가슴쪽으로 당기면서 스트레칭 하세요.',
   },
   {
     name: '엉덩이 근육 마사지(왼쪽)',
@@ -547,12 +619,16 @@ const EXERCISE_DATA = [
     desc: '오른쪽 엉덩이를 폼롤러 위에 얹고, 오른발 발목을 왼 무릎 위에 올립니다. 체중을 실어 둔근 전체를 굴려 마사지해 주세요.',
   },
   {
+    name: '허벅지 앞쪽 스트레칭',
+    desc: '엎드린 자세에서 폼롤러를 허벅지 앞(대퇴사두근)에 놓습니다. 골반을 내리며 체중을 실어 무릎에서 골반까지 앞뒤로 굴려주세요.',
+  },
+  {
     name: '허벅지 바깥쪽 스트레칭(왼쪽)',
-    desc: '왼쪽으로 누워 폼롤러를 왼쪽 허벅지 바깥(IT밴드)에 댑니다. 오른손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
+    desc: '왼쪽으로 누워 폼롤러를 왼쪽 허벅지 바깥에 댑니다. 오른손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
   },
   {
     name: '허벅지 바깥쪽 스트레칭(오른쪽)',
-    desc: '오른쪽으로 누워 폼롤러를 오른쪽 허벅지 바깥(IT밴드)에 댑니다. 왼손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
+    desc: '오른쪽으로 누워 폼롤러를 오른쪽 허벅지 바깥에 댑니다. 왼손으로 지지하며 무릎에서 골반 방향으로 천천히 굴려주세요.',
   },
   {
     name: '허벅지 안쪽 마사지(왼쪽)',
@@ -576,7 +652,7 @@ const EXERCISE_DATA = [
   },
   {
     name: '정강이 종아리 근육 이완',
-    desc: '폼롤러를 발목 위쪽에 두고 양다리를 올립니다. 발목을 상하좌우로 천천히 움직이며 정강이와 종아리 근육을 동시에 이완해 주세요.',
+    desc: '무릎을 구부린 상태로 앉아 종아리 위에 폼롤러를 올린 다음 그대로 앉아서 근육을 압박하세요. 이때 발등이 바닥에 닿게 하세요.',
   },
 ];
 
@@ -592,8 +668,9 @@ let phase = 'idle'; // idle | prep | exercise | done
 let cur = 0;
 let tLeft = 0;
 let paused = false;
-let rafId = null;
-let lastTs = null;
+let intervalId = null;
+let phaseStartWall = null;
+let phaseStartTLeft = null;
 let lastAnnounced = -1;
 const doneSet = new Set();
 
@@ -694,55 +771,59 @@ function startEx(i, intro = false) {
     speak(`다음은 ${ttsName(exercises[i].name)}. 준비하세요.`);
   }
   render();
-  rafId = requestAnimationFrame(tick);
+  startAnim();
 }
 
-function tick(ts) {
-  if (paused) { lastTs = null; return; }
+function startAnim() {
+  stopAnim();
+  phaseStartWall = Date.now();
+  phaseStartTLeft = tLeft;
+  intervalId = setInterval(tick, 250);
+}
 
-  if (lastTs !== null) {
-    const dt = (ts - lastTs) / 1000;
-    tLeft -= dt;
+function tick() {
+  if (paused) return;
 
-    if (phase === 'prep' && tLeft <= 0) {
-      phase = 'exercise';
-      tLeft = exercises[cur].dur;
-      lastAnnounced = -1;
-      speak('시작');
-      speak(exercises[cur].desc, false);
-    } else if (phase === 'exercise') {
-      if (tLeft <= 0) {
-        tLeft = 0;
-        doneSet.add(cur);
-        speak('완료');
+  const elapsed = (Date.now() - phaseStartWall) / 1000;
+  tLeft = Math.max(0, phaseStartTLeft - elapsed);
+
+  if (phase === 'prep' && tLeft <= 0) {
+    phase = 'exercise';
+    tLeft = exercises[cur].dur;
+    lastAnnounced = -1;
+    phaseStartWall = Date.now();
+    phaseStartTLeft = tLeft;
+    speak('시작');
+    speak(exercises[cur].desc, false);
+  } else if (phase === 'exercise') {
+    if (tLeft <= 0) {
+      tLeft = 0;
+      doneSet.add(cur);
+      speak('완료');
+      render();
+      stopAnim();
+      if (cur < exercises.length - 1) {
+        setTimeout(() => startEx(cur + 1), 1200);
+      } else {
+        phase = 'done';
         render();
-        stopAnim();
-        if (cur < exercises.length - 1) {
-          setTimeout(() => startEx(cur + 1), 1200);
-        } else {
-          phase = 'done';
-          render();
-          setTimeout(() => speak('모든 프로그램이 끝났습니다. 수고하셨습니다.'), 800);
-        }
-        return;
+        setTimeout(() => speak('모든 프로그램이 끝났습니다. 수고하셨습니다.'), 800);
       }
-      // 10초 단위 음성 안내
-      const s = Math.floor(tLeft);
-      if (s > 0 && s % 10 === 0 && s !== lastAnnounced && s < exercises[cur].dur) {
-        lastAnnounced = s;
-        speak(`${s}초 남았습니다`, false);
-      }
+      return;
+    }
+    // 10초 단위 음성 안내
+    const s = Math.floor(tLeft);
+    if (s > 0 && s % 10 === 0 && s !== lastAnnounced && s < exercises[cur].dur) {
+      lastAnnounced = s;
+      speak(`${s}초 남았습니다`, false);
     }
   }
 
-  lastTs = ts;
   render();
-  rafId = requestAnimationFrame(tick);
 }
 
 function stopAnim() {
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  lastTs = null;
+  if (intervalId) { clearInterval(intervalId); intervalId = null; }
 }
 
 // Render
@@ -813,7 +894,9 @@ function togglePlay() {
     startEx(0, true);
   } else if (paused) {
     paused = false;
-    rafId = requestAnimationFrame(tick);
+    phaseStartWall = Date.now();
+    phaseStartTLeft = tLeft;
+    intervalId = setInterval(tick, 250);
     render();
   } else {
     paused = true;
@@ -881,6 +964,29 @@ function installApp() {
     document.getElementById('installBtn').style.display = 'none';
   });
 }
+
+// 화면 세로 고정 (Android Chrome PWA 지원)
+function lockPortrait() {
+  try {
+    screen.orientation.lock('portrait').catch(() => {});
+  } catch (e) {}
+}
+lockPortrait();
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    lockPortrait();
+    // 화면이 켜졌을 때 타이머가 진행 중이면 음성 안내 재개
+    if (!paused && phase !== 'idle' && phase !== 'done') {
+      speechSynthesis.cancel();
+      const s = Math.floor(tLeft);
+      if (phase === 'exercise' && s > 0) {
+        speak(`${s}초 남았습니다`);
+      } else if (phase === 'prep') {
+        speak('준비하세요');
+      }
+    }
+  }
+});
 
 // 서비스워커 등록
 if ('serviceWorker' in navigator) {
