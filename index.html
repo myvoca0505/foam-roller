@@ -45,7 +45,7 @@
     }
 
     .s-head {
-      padding: 18px 16px 14px;
+      padding: 18px 16px 0;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
@@ -82,12 +82,6 @@
       border-top: 1px solid var(--border);
     }
 
-    .all-ctrl + .all-ctrl {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: none;
-    }
-
     .all-ctrl label {
       font-size: 0.75rem;
       color: var(--muted);
@@ -120,6 +114,38 @@
     }
 
     .all-btn:hover { background: #6ba0f9; }
+
+    /* 접히는 설정 영역 */
+    .s-collapsible {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.32s ease;
+    }
+    .s-collapsible.open {
+      max-height: 140px;
+    }
+
+    /* 드래그 핸들 */
+    .s-drag-handle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 7px 0 5px;
+      cursor: ns-resize;
+      touch-action: none;
+      user-select: none;
+    }
+    .s-drag-handle::after {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.2s, width 0.2s;
+    }
+    .s-drag-handle:hover::after { background: var(--muted); }
+    .s-drag-handle.open::after  { background: var(--blue); width: 20px; }
 
     .install-btn {
       display: none;
@@ -527,26 +553,25 @@
         영상보기
       </a>
     </h1>
-    <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
-    <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
-    <div class="all-ctrl">
-      <label>전체 시간</label>
-      <select class="all-sel" id="allSel">
-      </select>
-      <button class="all-btn" onclick="applyAll()">전체 적용</button>
+    <div class="s-collapsible" id="sCollapsible">
+      <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
+      <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
+      <div class="all-ctrl">
+        <label>전체</label>
+        <select class="all-sel" id="allSel" style="min-width:0"></select>
+        <button class="all-btn" onclick="applyAll()">적용</button>
+        <label style="margin-left:2px">준비</label>
+        <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)" style="min-width:0">
+          <option value="3">3초</option>
+          <option value="5">5초</option>
+          <option value="7" selected>7초</option>
+          <option value="10">10초</option>
+          <option value="15">15초</option>
+          <option value="20">20초</option>
+        </select>
+      </div>
     </div>
-    <div class="all-ctrl">
-      <label>준비 시간</label>
-      <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)">
-        <option value="3">3초</option>
-        <option value="5">5초</option>
-        <option value="7" selected>7초</option>
-        <option value="10">10초</option>
-        <option value="15">15초</option>
-        <option value="20">20초</option>
-      </select>
-      <span style="font-size:0.7rem; color:var(--muted); flex-shrink:0; white-space:nowrap">다음 동작 전</span>
-    </div>
+    <div class="s-drag-handle" id="sDragHandle"></div>
   </div>
   <ul class="ex-list" id="exList"></ul>
 </aside>
@@ -1060,6 +1085,45 @@ if ('serviceWorker' in navigator) {
   }
 
   banner.style.display = 'flex';
+})();
+
+// 사이드바 헤더 드래그 핸들
+(function () {
+  const handle = document.getElementById('sDragHandle');
+  const col    = document.getElementById('sCollapsible');
+  let startY = null;
+  let isOpen = false;
+
+  function setOpen(val) {
+    isOpen = val;
+    col.classList.toggle('open', isOpen);
+    handle.classList.toggle('open', isOpen);
+  }
+
+  // 터치 (모바일)
+  handle.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  handle.addEventListener('touchend', e => {
+    if (startY === null) return;
+    const dy = e.changedTouches[0].clientY - startY;
+    if      (dy >  15 && !isOpen) setOpen(true);
+    else if (dy < -15 &&  isOpen) setOpen(false);
+    else if (Math.abs(dy) < 8)    setOpen(!isOpen); // 탭
+    startY = null;
+  }, { passive: true });
+
+  // 마우스 (데스크탑)
+  handle.addEventListener('mousedown', e => { startY = e.clientY; });
+  window.addEventListener('mouseup', e => {
+    if (startY === null) return;
+    const dy = e.clientY - startY;
+    if      (dy >  8 && !isOpen) setOpen(true);
+    else if (dy < -8 &&  isOpen) setOpen(false);
+    else if (Math.abs(dy) < 5)   setOpen(!isOpen);
+    startY = null;
+  });
 })();
 </script>
 </body>
