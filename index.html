@@ -557,12 +557,12 @@
       <button class="all-btn" onclick="applyAll()">적용</button>
       <label style="margin-left:2px">준비</label>
       <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)" style="min-width:0">
-        <option value="3">3초</option>
         <option value="5">5초</option>
+        <option value="6">6초</option>
         <option value="7" selected>7초</option>
+        <option value="8">8초</option>
+        <option value="9">9초</option>
         <option value="10">10초</option>
-        <option value="15">15초</option>
-        <option value="20">20초</option>
       </select>
     </div>
     <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
@@ -708,7 +708,7 @@ const EXERCISE_DATA = [
   },
 ];
 
-const exercises = EXERCISE_DATA.map(e => ({ name: e.name, desc: e.desc, dur: 90 }));
+const exercises = EXERCISE_DATA.map(e => ({ name: e.name, desc: e.desc, dur: 60 }));
 let prepTime = 7; // 다음 동작 준비 시간 (초), 기본값 7초
 const C = 2 * Math.PI * 108; // 678.58
 
@@ -762,7 +762,7 @@ function buildAllSel() {
   const sel = $('allSel');
   sel.innerHTML = Array.from({ length: 30 }, (_, k) => {
     const s = (k + 1) * 10;
-    return `<option value="${s}"${s === 90 ? ' selected' : ''}>${s}초</option>`;
+    return `<option value="${s}"${s === 60 ? ' selected' : ''}>${s}초</option>`;
   }).join('');
 }
 
@@ -786,7 +786,7 @@ function buildList() {
 
     const opts = Array.from({ length: 30 }, (_, k) => {
       const s = (k + 1) * 10;
-      return `<option value="${s}"${s === ex.dur ? ' selected' : ''}>${s}초</option>`;
+      return `<option value="${s}"${s === ex.dur ? ' selected' : ''}>${s}초</option>`; // ex.dur 기본 60
     }).join('');
 
     li.innerHTML = `
