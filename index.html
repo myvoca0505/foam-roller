@@ -82,6 +82,12 @@
       border-top: 1px solid var(--border);
     }
 
+    .all-ctrl + .all-ctrl {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: none;
+    }
+
     .all-ctrl label {
       font-size: 0.75rem;
       color: var(--muted);
@@ -529,6 +535,18 @@
       </select>
       <button class="all-btn" onclick="applyAll()">전체 적용</button>
     </div>
+    <div class="all-ctrl">
+      <label>준비 시간</label>
+      <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)">
+        <option value="3">3초</option>
+        <option value="5">5초</option>
+        <option value="7" selected>7초</option>
+        <option value="10">10초</option>
+        <option value="15">15초</option>
+        <option value="20">20초</option>
+      </select>
+      <span style="font-size:0.7rem; color:var(--muted); flex-shrink:0; white-space:nowrap">다음 동작 전</span>
+    </div>
   </div>
   <ul class="ex-list" id="exList"></ul>
 </aside>
@@ -666,7 +684,7 @@ const EXERCISE_DATA = [
 ];
 
 const exercises = EXERCISE_DATA.map(e => ({ name: e.name, desc: e.desc, dur: 90 }));
-const PREP = 5;
+let prepTime = 7; // 다음 동작 준비 시간 (초), 기본값 7초
 const C = 2 * Math.PI * 108; // 678.58
 
 const ICON_PLAY  = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M9 6v12l10-6z"/></svg>';
@@ -697,6 +715,11 @@ const progFill  = $('progFill');
 const playBtn   = $('playBtn');
 const totalTime = $('totalTime');
 
+
+function setPrepTime(v) {
+  prepTime = v;
+  calcTotal();
+}
 
 function buildAllSel() {
   const sel = $('allSel');
@@ -745,7 +768,7 @@ function setDur(i, v) {
 }
 
 function calcTotal() {
-  const s = exercises.reduce((a, e) => a + e.dur + PREP, 0);
+  const s = exercises.reduce((a, e) => a + e.dur + prepTime, 0);
   const m = Math.floor(s / 60);
   const sec = s % 60;
   totalTime.textContent = `총 예상 시간: ${m}분${sec ? ' ' + sec + '초' : ''}`;
@@ -770,7 +793,7 @@ function startEx(i, intro = false) {
   stopAnim();
   cur = i;
   phase = 'prep';
-  tLeft = PREP;
+  tLeft = prepTime;
   paused = false;
   lastAnnounced = -1;
   if (intro) {
@@ -866,7 +889,7 @@ function render() {
     exTitleEl.textContent = ex.name;
     exDescEl.textContent = ex.desc;
 
-    const total = phase === 'prep' ? PREP : ex.dur;
+    const total = phase === 'prep' ? prepTime : ex.dur;
     const pct = Math.max(0, tLeft / total);
     rNumEl.textContent = Math.max(0, Math.ceil(tLeft));
     rUnitEl.textContent = phase === 'prep' ? '초 후 시작' : '초 남음';
