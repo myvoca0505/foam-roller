@@ -122,7 +122,7 @@
       transition: max-height 0.32s ease;
     }
     .s-collapsible.open {
-      max-height: 140px;
+      max-height: 60px;
     }
 
     /* 드래그 핸들 */
@@ -553,25 +553,25 @@
         영상보기
       </a>
     </h1>
-    <div class="s-collapsible" id="sCollapsible">
-      <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
-      <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
-      <div class="all-ctrl">
-        <label>전체</label>
-        <select class="all-sel" id="allSel" style="min-width:0"></select>
-        <button class="all-btn" onclick="applyAll()">적용</button>
-        <label style="margin-left:2px">준비</label>
-        <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)" style="min-width:0">
-          <option value="3">3초</option>
-          <option value="5">5초</option>
-          <option value="7" selected>7초</option>
-          <option value="10">10초</option>
-          <option value="15">15초</option>
-          <option value="20">20초</option>
-        </select>
-      </div>
+    <div class="all-ctrl">
+      <label>전체</label>
+      <select class="all-sel" id="allSel" style="min-width:0"></select>
+      <button class="all-btn" onclick="applyAll()">적용</button>
+      <label style="margin-left:2px">준비</label>
+      <select class="all-sel" id="prepSel" onchange="setPrepTime(+this.value)" style="min-width:0">
+        <option value="3">3초</option>
+        <option value="5">5초</option>
+        <option value="7" selected>7초</option>
+        <option value="10">10초</option>
+        <option value="15">15초</option>
+        <option value="20">20초</option>
+      </select>
     </div>
     <div class="s-drag-handle" id="sDragHandle"></div>
+    <div class="s-collapsible" id="sCollapsible">
+      <div class="s-sub" id="totalTime" style="padding-bottom:10px">총 예상 시간: 계산 중...</div>
+      <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
+    </div>
   </div>
   <ul class="ex-list" id="exList"></ul>
 </aside>
@@ -1100,30 +1100,21 @@ if ('serviceWorker' in navigator) {
     handle.classList.toggle('open', isOpen);
   }
 
-  // 터치 (모바일)
-  handle.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY;
-  }, { passive: true });
+  handle.addEventListener('pointerdown', e => {
+    startY = e.clientY;
+    handle.setPointerCapture(e.pointerId);
+  });
 
-  handle.addEventListener('touchend', e => {
-    if (startY === null) return;
-    const dy = e.changedTouches[0].clientY - startY;
-    if      (dy >  15 && !isOpen) setOpen(true);
-    else if (dy < -15 &&  isOpen) setOpen(false);
-    else if (Math.abs(dy) < 8)    setOpen(!isOpen); // 탭
-    startY = null;
-  }, { passive: true });
-
-  // 마우스 (데스크탑)
-  handle.addEventListener('mousedown', e => { startY = e.clientY; });
-  window.addEventListener('mouseup', e => {
+  handle.addEventListener('pointerup', e => {
     if (startY === null) return;
     const dy = e.clientY - startY;
-    if      (dy >  8 && !isOpen) setOpen(true);
-    else if (dy < -8 &&  isOpen) setOpen(false);
-    else if (Math.abs(dy) < 5)   setOpen(!isOpen);
+    if      (dy >  12 && !isOpen) setOpen(true);
+    else if (dy < -12 &&  isOpen) setOpen(false);
+    else if (Math.abs(dy) < 8)    setOpen(!isOpen); // 탭
     startY = null;
   });
+
+  handle.addEventListener('pointercancel', () => { startY = null; });
 })();
 </script>
 </body>
