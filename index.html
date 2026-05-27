@@ -726,6 +726,18 @@ let phaseStartTLeft = null;
 let lastAnnounced = -1;
 const doneSet = new Set();
 
+// Wake Lock (화면 꺼짐 방지)
+let wakeLock = null;
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+}
+async function releaseWakeLock() {
+  if (!wakeLock) return;
+  try { await wakeLock.release(); } catch (e) {}
+  wakeLock = null;
+}
+
 // DOM
 const $ = id => document.getElementById(id);
 const exListEl  = $('exList');
@@ -863,6 +875,7 @@ function tick() {
         setTimeout(() => startEx(cur + 1), 1200);
       } else {
         phase = 'done';
+        releaseWakeLock();
         render();
         setTimeout(() => speak('모든 프로그램이 끝났습니다. 수고하셨습니다.'), 800);
       }
@@ -949,15 +962,18 @@ function togglePlay() {
   if (phase === 'idle' || phase === 'done') {
     doneSet.clear();
     startEx(0, true);
+    acquireWakeLock();
   } else if (paused) {
     paused = false;
     phaseStartWall = Date.now();
     phaseStartTLeft = tLeft;
     intervalId = setInterval(tick, 250);
+    acquireWakeLock();
     render();
   } else {
     paused = true;
     speechSynthesis.cancel();
+    releaseWakeLock();
     render();
   }
 }
@@ -989,6 +1005,7 @@ function jumpTo(i) {
 function resetAll() {
   stopAnim();
   speechSynthesis.cancel();
+  releaseWakeLock();
   phase = 'idle';
   cur = 0;
   tLeft = 0;
@@ -1041,6 +1058,7 @@ document.addEventListener('visibilitychange', () => {
       } else if (phase === 'prep') {
         speak('준비하세요');
       }
+      acquireWakeLock(); // Wake Lock 재획득 (화면 전환 후 자동 해제되므로)
     }
   }
 });
