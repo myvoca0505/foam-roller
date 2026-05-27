@@ -670,6 +670,10 @@ const EXERCISE_DATA = [
     desc: '무릎을 꿇고 정강이 앞쪽(전경골근)에 폼롤러를 댑니다. 체중을 앞으로 실어 발목에서 무릎 아래까지 앞뒤로 굴려주세요.',
   },
   {
+    name: '장단지 윗부분 마사지',
+    desc: '양 장단지 윗부분을 폼롤러 위에 올리고 엉덩이를 들어 위아래로 롤링하면서 장단지 근육을 마사지 하세요.',
+  },
+  {
     name: '종아리 근육 마사지(왼쪽)',
     desc: '왼쪽 종아리를 폼롤러 위에 올리고 엉덩이를 들어 체중을 실습니다. 발목에서 무릎 바로 아래까지 천천히 굴려 종아리를 풀어주세요.',
   },
@@ -866,7 +870,7 @@ function render() {
   phaseTag.textContent = { idle: '대기', prep: '준비', exercise: '운동중', done: '완료!' }[phase];
 
   if (phase === 'idle') {
-    counterEl.textContent = '— / 25';
+    counterEl.textContent = `— / ${exercises.length}`;
     exTitleEl.textContent = '시작을 눌러주세요';
     exDescEl.textContent = '';
     rNumEl.textContent = '--';
