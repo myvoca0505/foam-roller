@@ -143,13 +143,6 @@
         border-radius: 2px;
         background: var(--muted);
       }
-      .sidebar-handle::after {
-        content: '▼';
-        font-size: 0.5rem;
-        color: var(--muted);
-        line-height: 1;
-      }
-      .sidebar-handle.expanded::after { content: '▲'; }
     }
 
     .install-btn {
@@ -1111,7 +1104,11 @@ if ('serviceWorker' in navigator) {
     return Math.ceil(headH + handleH + 6 + itemsH);
   }
 
-  function getMaxH() { return window.innerHeight; }
+  function getMaxH() {
+    const items = document.querySelectorAll('.ex-item');
+    const itemH = items.length > 0 ? items[0].getBoundingClientRect().height + 2 : 46;
+    return window.innerHeight - Math.ceil(itemH * 3);
+  }
 
   function snapTo(open) {
     expanded = open;
