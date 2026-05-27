@@ -128,24 +128,36 @@
     /* 드래그 핸들 */
     .s-drag-handle {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      padding: 12px 0 10px;
+      gap: 4px;
+      padding: 8px 0 6px;
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      color: var(--muted);
+      font-size: 0.6rem;
+      letter-spacing: 0.05em;
     }
-    .s-drag-handle::after {
+    .s-drag-handle::before {
       content: '';
       display: block;
       width: 36px;
-      height: 4px;
+      height: 3px;
       border-radius: 2px;
-      background: var(--border);
-      transition: background 0.2s, width 0.2s;
+      background: var(--muted);
+      transition: background 0.2s;
     }
-    .s-drag-handle:hover::after { background: var(--muted); }
-    .s-drag-handle.open::after  { background: var(--blue); width: 20px; }
+    .s-drag-handle::after {
+      content: '▼ 예상시간';
+      font-size: 0.6rem;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .s-drag-handle.open::before { background: var(--blue); }
+    .s-drag-handle.open::after  { content: '▲ 접기'; color: var(--blue); }
+    .s-drag-handle:hover::before { background: var(--blue); }
+    .s-drag-handle:hover::after  { color: var(--blue); }
 
     .install-btn {
       display: none;
