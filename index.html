@@ -45,7 +45,7 @@
     }
 
     .s-head {
-      padding: 18px 16px 0;
+      padding: 18px 16px 14px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
@@ -115,49 +115,32 @@
 
     .all-btn:hover { background: #6ba0f9; }
 
-    /* 접히는 설정 영역 */
-    .s-collapsible {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.32s ease;
+    /* 사이드바 리사이즈 핸들 (모바일 전용) */
+    .sidebar-handle {
+      display: none;
     }
-    .s-collapsible.open {
-      max-height: 60px;
+    @media (max-width: 680px) {
+      .sidebar-handle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        height: 20px;
+        cursor: ns-resize;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        background: var(--surf);
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-handle::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--muted);
+      }
     }
-
-    /* 드래그 핸들 */
-    .s-drag-handle {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 0 6px;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      color: var(--muted);
-      font-size: 0.6rem;
-      letter-spacing: 0.05em;
-    }
-    .s-drag-handle::before {
-      content: '';
-      display: block;
-      width: 36px;
-      height: 3px;
-      border-radius: 2px;
-      background: var(--muted);
-      transition: background 0.2s;
-    }
-    .s-drag-handle::after {
-      content: '▼ 예상시간';
-      font-size: 0.6rem;
-      color: var(--muted);
-      transition: color 0.2s;
-    }
-    .s-drag-handle.open::before { background: var(--blue); }
-    .s-drag-handle.open::after  { content: '▲ 접기'; color: var(--blue); }
-    .s-drag-handle:hover::before { background: var(--blue); }
-    .s-drag-handle:hover::after  { color: var(--blue); }
 
     .install-btn {
       display: none;
@@ -522,7 +505,7 @@
         height: 100dvh;
         overflow: hidden;
       }
-      .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+      .sidebar { border-right: none; }
       .s-head { padding: 12px 16px 10px; }
       .s-head h1 { font-size: 1.1rem; }
       .s-sub { margin-top: 3px; }
@@ -579,13 +562,11 @@
         <option value="20">20초</option>
       </select>
     </div>
-    <div class="s-drag-handle" id="sDragHandle"></div>
-    <div class="s-collapsible" id="sCollapsible">
-      <div class="s-sub" id="totalTime" style="padding-bottom:10px">총 예상 시간: 계산 중...</div>
-      <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
-    </div>
+    <div class="s-sub" id="totalTime">총 예상 시간: 계산 중...</div>
+    <button class="install-btn" id="installBtn" onclick="installApp()">📲 홈 화면에 설치</button>
   </div>
   <ul class="ex-list" id="exList"></ul>
+  <div class="sidebar-handle" id="sidebarHandle"></div>
 </aside>
 
 <main class="main">
@@ -1099,40 +1080,45 @@ if ('serviceWorker' in navigator) {
   banner.style.display = 'flex';
 })();
 
-// 사이드바 헤더 드래그 핸들
+// 사이드바 리사이즈 핸들 (모바일 전용)
 (function () {
-  const handle = document.getElementById('sDragHandle');
-  const col    = document.getElementById('sCollapsible');
+  const handle = document.getElementById('sidebarHandle');
+  if (!handle) return;
+
   let startY = null;
-  let isOpen = false;
+  let startH = null;
+  const MIN_H = 160;
+  const MAX_H = () => Math.round(window.innerHeight * 0.78);
 
-  function setOpen(val) {
-    isOpen = val;
-    col.classList.toggle('open', isOpen);
-    handle.classList.toggle('open', isOpen);
+  function applyH(h) {
+    const clamped = Math.min(MAX_H(), Math.max(MIN_H, h));
+    document.body.style.gridTemplateRows = `${clamped}px 1fr`;
   }
 
-  function onStart(y) { startY = y; }
+  // 터치
+  handle.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    startH = handle.closest('.sidebar').getBoundingClientRect().height;
+  }, { passive: true });
 
-  function onEnd(y) {
+  handle.addEventListener('touchmove', e => {
     if (startY === null) return;
-    const dy = y - startY;
-    if      (dy >  10 && !isOpen) setOpen(true);
-    else if (dy < -10 &&  isOpen) setOpen(false);
-    else if (Math.abs(dy) <= 10)  setOpen(!isOpen); // 탭
-    startY = null;
-  }
+    applyH(startH + (e.touches[0].clientY - startY));
+  }, { passive: true });
 
-  // 터치 (모바일)
-  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
-  handle.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientY));
-  handle.addEventListener('touchcancel', () => { startY = null; });
+  handle.addEventListener('touchend', () => { startY = null; startH = null; });
 
-  // 마우스 (데스크탑)
-  handle.addEventListener('mousedown', e => onStart(e.clientY));
-  document.addEventListener('mouseup', e => {
-    if (startY !== null) onEnd(e.clientY);
+  // 마우스 (데스크탑 테스트용)
+  handle.addEventListener('mousedown', e => {
+    startY = e.clientY;
+    startH = handle.closest('.sidebar').getBoundingClientRect().height;
+    e.preventDefault();
   });
+  document.addEventListener('mousemove', e => {
+    if (startY === null) return;
+    applyH(startH + (e.clientY - startY));
+  });
+  document.addEventListener('mouseup', () => { startY = null; startH = null; });
 })();
 </script>
 </body>
