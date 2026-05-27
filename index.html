@@ -130,16 +130,16 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 7px 0 5px;
-      cursor: ns-resize;
-      touch-action: none;
+      padding: 12px 0 10px;
+      cursor: pointer;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
     .s-drag-handle::after {
       content: '';
       display: block;
-      width: 32px;
-      height: 3px;
+      width: 36px;
+      height: 4px;
       border-radius: 2px;
       background: var(--border);
       transition: background 0.2s, width 0.2s;
@@ -1100,21 +1100,27 @@ if ('serviceWorker' in navigator) {
     handle.classList.toggle('open', isOpen);
   }
 
-  handle.addEventListener('pointerdown', e => {
-    startY = e.clientY;
-    handle.setPointerCapture(e.pointerId);
-  });
+  function onStart(y) { startY = y; }
 
-  handle.addEventListener('pointerup', e => {
+  function onEnd(y) {
     if (startY === null) return;
-    const dy = e.clientY - startY;
-    if      (dy >  12 && !isOpen) setOpen(true);
-    else if (dy < -12 &&  isOpen) setOpen(false);
-    else if (Math.abs(dy) < 8)    setOpen(!isOpen); // 탭
+    const dy = y - startY;
+    if      (dy >  10 && !isOpen) setOpen(true);
+    else if (dy < -10 &&  isOpen) setOpen(false);
+    else if (Math.abs(dy) <= 10)  setOpen(!isOpen); // 탭
     startY = null;
-  });
+  }
 
-  handle.addEventListener('pointercancel', () => { startY = null; });
+  // 터치 (모바일)
+  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
+  handle.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientY));
+  handle.addEventListener('touchcancel', () => { startY = null; });
+
+  // 마우스 (데스크탑)
+  handle.addEventListener('mousedown', e => onStart(e.clientY));
+  document.addEventListener('mouseup', e => {
+    if (startY !== null) onEnd(e.clientY);
+  });
 })();
 </script>
 </body>
