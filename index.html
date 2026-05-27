@@ -115,17 +115,20 @@
 
     .all-btn:hover { background: #6ba0f9; }
 
-    /* 사이드바 리사이즈 핸들 (모바일 전용) */
+    /* 사이드바 스냅 핸들 (모바일 전용) */
     .sidebar-handle {
       display: none;
     }
     @media (max-width: 680px) {
+      body { transition: grid-template-rows 0.28s ease; }
       .sidebar-handle {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
+        gap: 3px;
         flex-shrink: 0;
-        height: 20px;
+        height: 28px;
         cursor: ns-resize;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
@@ -135,11 +138,18 @@
       .sidebar-handle::before {
         content: '';
         display: block;
-        width: 40px;
-        height: 4px;
+        width: 36px;
+        height: 3px;
         border-radius: 2px;
         background: var(--muted);
       }
+      .sidebar-handle::after {
+        content: '▼';
+        font-size: 0.5rem;
+        color: var(--muted);
+        line-height: 1;
+      }
+      .sidebar-handle.expanded::after { content: '▲'; }
     }
 
     .install-btn {
@@ -1080,45 +1090,61 @@ if ('serviceWorker' in navigator) {
   banner.style.display = 'flex';
 })();
 
-// 사이드바 리사이즈 핸들 (모바일 전용)
+// 사이드바 스냅 핸들 (모바일 전용)
 (function () {
   const handle = document.getElementById('sidebarHandle');
   if (!handle) return;
 
   let startY = null;
-  let startH = null;
-  const MIN_H = 160;
-  const MAX_H = () => Math.round(window.innerHeight * 0.78);
+  let expanded = false;
 
-  function applyH(h) {
-    const clamped = Math.min(MAX_H(), Math.max(MIN_H, h));
-    document.body.style.gridTemplateRows = `${clamped}px 1fr`;
+  // 접혔을 때 높이: s-head + 아이템 3개 + 핸들
+  function getMinH() {
+    const head = document.querySelector('.s-head');
+    const items = document.querySelectorAll('.ex-item');
+    const headH = head ? head.getBoundingClientRect().height : 110;
+    const handleH = handle.getBoundingClientRect().height || 20;
+    let itemsH = 0;
+    for (let i = 0; i < Math.min(3, items.length); i++) {
+      itemsH += items[i].getBoundingClientRect().height + 2;
+    }
+    return Math.ceil(headH + handleH + 6 + itemsH);
   }
 
-  // 터치
-  handle.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY;
-    startH = handle.closest('.sidebar').getBoundingClientRect().height;
-  }, { passive: true });
+  function getMaxH() { return window.innerHeight; }
 
-  handle.addEventListener('touchmove', e => {
+  function snapTo(open) {
+    expanded = open;
+    const h = open ? getMaxH() : getMinH();
+    document.body.style.gridTemplateRows = `${h}px 1fr`;
+    handle.classList.toggle('expanded', open);
+  }
+
+  // 초기: 접힌 상태
+  function init() {
+    if (window.innerWidth <= 680) snapTo(false);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  function onStart(y) { startY = y; }
+  function onEnd(y) {
     if (startY === null) return;
-    applyH(startH + (e.touches[0].clientY - startY));
-  }, { passive: true });
+    const dy = y - startY;
+    if      (dy >  8 && !expanded) snapTo(true);
+    else if (dy < -8 &&  expanded) snapTo(false);
+    startY = null;
+  }
 
-  handle.addEventListener('touchend', () => { startY = null; startH = null; });
+  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
+  handle.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientY));
+  handle.addEventListener('touchcancel', () => { startY = null; });
 
-  // 마우스 (데스크탑 테스트용)
-  handle.addEventListener('mousedown', e => {
-    startY = e.clientY;
-    startH = handle.closest('.sidebar').getBoundingClientRect().height;
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', e => {
-    if (startY === null) return;
-    applyH(startH + (e.clientY - startY));
-  });
-  document.addEventListener('mouseup', () => { startY = null; startH = null; });
+  handle.addEventListener('mousedown', e => { onStart(e.clientY); e.preventDefault(); });
+  document.addEventListener('mouseup', e => { if (startY !== null) onEnd(e.clientY); });
 })();
 </script>
 </body>
